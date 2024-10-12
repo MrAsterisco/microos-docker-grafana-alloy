@@ -1,11 +1,28 @@
 #!/bin/bash
 
-if [ "$(cat /etc/os-release | grep -oP '(?<=^NAME=).*')" != "openSUSE MicroOS" ]; then
-  echo "This script only runs on openSUSE microOS."
+# Modes
+INSTALL="install"
+CONFIGURE="configure"
+
+# Constants
+ALLOY_CONFIG_PATH=/etc/alloy/config.alloy
+
+# Compatibility Detection
+# This script is built for OpenSUSE MicroOS and will not work as expected
+# on other operating systems. This check is to prevent the script from
+# running on unsupported operating systems.
+
+OS=$(cat /etc/os-release | grep -oP '(?<=^ID=).*' | tr -d '"')
+
+if [ "$OS" != "opensuse-microos" ]; then
+  echo "This script only runs on openSUSE MicroOS. Your OS is: $OS. If you would like for $OS to be supported, please open an issue on the GitHub repository."
   exit 1
 fi
 
-if [ "$1" == "install" ]; then
+# Install
+# When running with the `install` parameter, the script will add
+# the Grafana repository and install the Alloy package.
+if [ "$1" == "$INSTALL" ]; then
 
 echo "Downloading the Grafana GPG key..."
 curl -s -o gpg.key https://rpm.grafana.com/gpg.key
@@ -13,9 +30,22 @@ curl -s -o gpg.key https://rpm.grafana.com/gpg.key
 echo "Adding the Grafana Alloy repository..."
 transactional-update run rpm --import gpg.key; zypper addrepo https://rpm.grafana.com grafana; pkg in alloy
 
-echo "Alloy has been installed successfully! Please reboot the machine to apply the new snapshot, then run this script again with the configure argument."
+read -p "Installation was successful. The system now needs to reboot in order to apply the new snapshot. After rebooting, run this script again with \"$0 $CONFIGURE\". Would you like to reboot now? (Y/N): " response
 
-elif [ "$1" == "configure" ]; then
+if [[ "$response" =~ ^[Yy]$ ]]; then
+  reboot
+else
+  echo "Operation cancelled by user. Please, reboot the system manually to apply the new snapshot then run this script again with \"$0 $CONFIGURE\"."
+  exit 1
+fi
+
+# Configure
+# When running with the `configure` parameter, the script will
+# download the default Alloy configuration file, update it with
+# the required environment variables, and move it to the correct
+# location. The script will also update the systemd service file
+# to run Alloy as the root user.
+elif [ "$1" == "$CONFIGURE" ]; then
 
 if [ -z "${GCLOUD_RW_API_KEY}" ] || [ -z "${GCLOUD_HOSTED_METRICS_URL}" ] || [ -z "${GCLOUD_HOSTED_METRICS_ID}" ] || [ -z "${GCLOUD_SCRAPE_INTERVAL}" ] || [ -z "${GCLOUD_HOSTED_LOGS_URL}" ] || [ -z "${GCLOUD_HOSTED_LOGS_ID}" ]; then
   echo "Error: One or more required environment variables are not set or are empty. Navigate to your Grafana Cloud instance and use the Docker Integration to get all the required environment variables. See README for further information."
@@ -38,26 +68,31 @@ sed -i -e "s~{GCLOUD_HOSTED_LOGS_URL}~${GCLOUD_HOSTED_LOGS_URL}~g" "${TMP_CONFIG
 sed -i -e "s~{GCLOUD_HOSTED_LOGS_ID}~${GCLOUD_HOSTED_LOGS_ID}~g" "${TMP_CONFIG_FILE}"
 
 echo "Moving new configuration..."
-mv /etc/alloy/config.alloy /etc/alloy/config.alloy.bak
+mv "$ALLOY_CONFIG_PATH" /etc/alloy/config.alloy.bak
 
-mv "${TMP_CONFIG_FILE}" /etc/alloy/config.alloy
+mv "${TMP_CONFIG_FILE}" "$ALLOY_CONFIG_PATH"
 
 echo "Updating systemd service..."
 sed -i 's/User=alloy/User=root/g' /etc/systemd/system/alloy.service
 
-read -p "Alloy should now run once manually so that it can generate the required data before it can be used via systemd. The script will now start it: wait for the service to come online and use the Integrations page to check for the connection state. Once the connection is successful, press CTRL+C to quit. Do you want to continue? (Y/N): " response
+read -p "Alloy should now run once manually so that it can generate the required data before it can be used via systemd. The script will now start it: wait for the service to come online and use the Integrations page on Grafana Cloud to check for the connection state. Once the connection is successful, press CTRL+C to quit. Do you want to continue? (Y/N): " response
 
 if [[ "$response" =~ ^[Yy]$ ]]; then
   echo "Starting Alloy service..."
-  /usr/bin/alloy run $CUSTOM_ARGS --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+  /usr/bin/alloy run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
 
-  echo "You can now enable and start the Alloy service by running: systemctl enable alloy && systemctl start alloy"
+  echo "Configure Alloy to run as a service..."
+  systemctl enable --now alloy
 else
   echo "Operation cancelled by user. You can run Alloy manually by using the run command defined in the systemd service file."
   exit 1
 fi
 
+# No parameter
+# If the script is run without any parameters, the script will
+# display a usage message and exit.
 else
   echo "Usage: $0 {install|configure}"
+  echo "See README for further information."
   exit 1
 fi

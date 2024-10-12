@@ -74,8 +74,9 @@ mv "$ALLOY_CONFIG_PATH" /etc/alloy/config.alloy.bak
 
 mv "${TMP_CONFIG_FILE}" "$ALLOY_CONFIG_PATH"
 
-echo "Updating systemd service..."
-sed -i 's/User=alloy/User=root/g' /etc/systemd/system/alloy.service
+SERVICE_PATH=$(systemctl show -p FragmentPath alloy.service | cut -d'=' -f2)
+echo "Updating Alloy service at $SERVICE_PATH..."
+sed -i 's/User=alloy/User=root/g' "$SERVICE_PATH"
 
 read -p "Alloy should now run once manually so that it can generate the required data before it can be used via systemd. The script will now start it: wait for the service to come online and use the Integrations page on Grafana Cloud to check for the connection state. Once the connection is successful, press CTRL+C to quit. Do you want to continue? (Y/N): " response
 

@@ -3,6 +3,7 @@
 # Modes
 INSTALL="install"
 CONFIGURE="configure"
+START="start"
 
 # Constants
 ALLOY_CONFIG_PATH=/etc/alloy/config.alloy
@@ -76,7 +77,18 @@ mv "${TMP_CONFIG_FILE}" "$ALLOY_CONFIG_PATH"
 
 SERVICE_PATH=$(systemctl show -p FragmentPath alloy.service | cut -d'=' -f2)
 echo "Updating Alloy service at $SERVICE_PATH..."
-sed -i 's/User=alloy/User=root/g' "$SERVICE_PATH"
+transactional-update run sed -i 's/User=alloy/User=root/g' "$SERVICE_PATH"
+
+read -p "Configuration was successful. The system now needs to reboot in order to apply the new snapshot. After rebooting, run this script again with \"$0 $START\". Would you like to reboot now? (Y/N): " response
+
+if [[ "$response" =~ ^[Yy]$ ]]; then
+  reboot
+else
+  echo "Operation cancelled by user. Please, reboot the system manually to apply the new snapshot then run this script again with \"$0 $START\"."
+  exit 1
+fi
+
+elif [ "$1" == "$START" ]; then
 
 read -p "Alloy should now run once manually so that it can generate the required data before it can be used via systemd. The script will now start it: wait for the service to come online and use the Integrations page on Grafana Cloud to check for the connection state. Once the connection is successful, press CTRL+C to quit. Do you want to continue? (Y/N): " response
 

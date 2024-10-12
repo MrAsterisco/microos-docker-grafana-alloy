@@ -28,7 +28,9 @@ echo "Downloading the Grafana GPG key..."
 curl -s -o gpg.key https://rpm.grafana.com/gpg.key
 
 echo "Adding the Grafana Alloy repository..."
-transactional-update run rpm --import gpg.key; zypper addrepo https://rpm.grafana.com grafana; pkg in alloy
+transactional-update run rpm --import gpg.key
+transactional-update --continue run zypper addrepo https://rpm.grafana.com grafana
+transactional-update --continue pkg in alloy
 
 read -p "Installation was successful. The system now needs to reboot in order to apply the new snapshot. After rebooting, run this script again with \"$0 $CONFIGURE\". Would you like to reboot now? (Y/N): " response
 

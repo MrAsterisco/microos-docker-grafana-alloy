@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if ! grep -q "ID=opensuse-microos" /etc/os-release; then
-  echo "Error: This script is intended to run on openSUSE MicroOS only."
+if [ "$(cat /etc/os-release | grep -oP '(?<=^NAME=).*')" != "openSUSE MicroOS" ]; then
+  echo "This script only runs on openSUSE microOS."
   exit 1
 fi
 
@@ -57,4 +57,7 @@ else
   exit 1
 fi
 
+else
+  echo "Usage: $0 {install|configure}"
+  exit 1
 fi

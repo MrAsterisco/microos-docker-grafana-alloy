@@ -98,6 +98,8 @@ if [[ "$response" =~ ^[Yy]$ ]]; then
 
   echo "Configure Alloy to run as a service..."
   systemctl enable --now alloy
+
+  echo "Alloy is now running as a service. You can check the status by running: systemctl status alloy. Continue to Grafana Cloud to configure the data source and dashboards."
 else
   echo "Operation cancelled by user. You can run Alloy manually by using the run command defined in the systemd service file."
   exit 1

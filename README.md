@@ -6,6 +6,8 @@ Installing Grafana Alloy on MicroOS is not straightforward: while OpenSUSE is of
 
 > Disclaimer: this script performs various changes to your operating system configuration by adding a new repository, installing Grafana Alloy, and configuring the service to run on boot. Please make sure to understand what the script does before running it on your system. The script is provided as-is and the author is not responsible for any damage to your system or infrastructure caused by running it.
 
+> Note: this script requires to reboot your system to apply new snapshots. Make sure to run the script on a system that can be rebooted without causing any issues.
+
 ## Installation
 
 The latest script version can be downloaded from this GitHub repository.

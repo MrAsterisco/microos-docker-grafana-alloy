@@ -71,9 +71,8 @@ sed -i -e "s~{GCLOUD_HOSTED_LOGS_URL}~${GCLOUD_HOSTED_LOGS_URL}~g" "${TMP_CONFIG
 sed -i -e "s~{GCLOUD_HOSTED_LOGS_ID}~${GCLOUD_HOSTED_LOGS_ID}~g" "${TMP_CONFIG_FILE}"
 
 echo "Moving new configuration..."
-mv "$ALLOY_CONFIG_PATH" /etc/alloy/config.alloy.bak
-
-mv "${TMP_CONFIG_FILE}" "$ALLOY_CONFIG_PATH"
+mv "${ALLOY_CONFIG_PATH}" "${ALLOY_CONFIG_PATH}.bak"
+mv "${TMP_CONFIG_FILE}" "${ALLOY_CONFIG_PATH}"
 
 SERVICE_PATH=$(systemctl show -p FragmentPath alloy.service | cut -d'=' -f2)
 echo "Updating Alloy service at $SERVICE_PATH..."
@@ -94,9 +93,9 @@ read -p "Alloy should now run once manually so that it can generate the required
 
 if [[ "$response" =~ ^[Yy]$ ]]; then
   echo "Starting Alloy service..."
-  /usr/bin/alloy run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+  $(command -v alloy) run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
 
-  echo "Configure Alloy to run as a service..."
+  echo "Configuring Alloy to run as a service..."
   systemctl enable --now alloy
 
   echo "Alloy is now running as a service. You can check the status by running: systemctl status alloy. Continue to Grafana Cloud to configure the data source and dashboards."
@@ -109,7 +108,8 @@ fi
 # If the script is run without any parameters, the script will
 # display a usage message and exit.
 else
-  echo "Usage: $0 {install|configure}"
+  echo "Usage: $0 {$INSTALL|$CONFIGURE|$START}"
+  echo "To install on a new system run: $0 $INSTALL, then $0 $CONFIGURE, and finally $0 $START."
   echo "See README for further information."
   exit 1
 fi

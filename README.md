@@ -68,6 +68,8 @@ You should end up with a command that looks like this:
 ARCH="amd64" GCLOUD_HOSTED_METRICS_URL="https://someURL" GCLOUD_HOSTED_METRICS_ID="123456" GCLOUD_SCRAPE_INTERVAL="60s" GCLOUD_HOSTED_LOGS_URL="https://someOtherURL" GCLOUD_HOSTED_LOGS_ID="123456" GCLOUD_RW_API_KEY="longSequenceOfCharacters" ./alloy.sh configure
 ```
 
+Do not close the "Alloy configuration" window on Grafana Cloud, as you won't be able to see the values again, but you will also need it to test the Alloy integration.
+
 > Note: the script will fail immediately if any of these env variables are not defined. If Grafana is providing different values, please open an issue on the GitHub repo or try to modify the script accordingly.
 
 The script will then download the configuration, update all the required values, and then configure the `systemd` service to run Alloy.

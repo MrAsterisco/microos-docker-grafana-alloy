@@ -58,7 +58,8 @@ To get the correct command, it is recommend to copy/paste all the values directl
 4. Click on the "Configuration details" tab, then scroll down to the second step "Install Grafana Alloy".
 5. Click on "Run Grafana Alloy".
 6. Generate a new token by providing a name and clicking "Create token".
-7. Scroll down to the "Install and run Grafana Alloy" section and copy all the env variables as they're defined. You should copy everything until `/bin/sh -c`.
+7. Turn off "Enable Remote Configuration".
+8. Scroll down to the "Install and run Grafana Alloy" section and copy all the env variables as they're defined. You should copy everything until `/bin/sh -c`.
 
 > You can also try to install Alloy using the official script, but it will fail because of issues with SELinux. This script workarounds this problem by installing Alloy from the official repository and then applying the configuration manually.
 
